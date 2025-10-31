@@ -1,2 +1,2 @@
 # VFD_Badge
-VFD Based Conference Badge
+VFD Based Conference Badge.
