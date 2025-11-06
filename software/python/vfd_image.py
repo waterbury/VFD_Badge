@@ -76,6 +76,9 @@ def draw(image):
     # Makes sure image is in 1 bit color.
     img_1bit = image.convert('1', dither=Image.FLOYDSTEINBERG ).transpose(Image.FLIP_TOP_BOTTOM)
 
+    if invert == True:
+        img_1bit = img_1bit.point(lambda p: 255 - p)
+
     orig_horiz_res, orig_vert_res = img_1bit.size
     print(f"Image resolution: {orig_horiz_res}x{orig_vert_res} pixels")
 
@@ -192,16 +195,18 @@ def init_test():
     spi_transfer([0x78,0x08])
 
 
-
+invert = False
 args = sys.argv[1:]
-options = "hf:"
-long_options = ["Help", "file"]
+options = "hif:"
+long_options = ["Help", "invert", "file"]
 
 try:
     arguments, values = getopt.getopt(args, options, long_options)
     for currentArg, currentVal in arguments:
         if currentArg in ("-h", "--Help"):
             print("Showing Help")
+        elif currentArg in ("-i", "--invert"):
+            invert = True
         elif currentArg in ("-f", "--file"):
             filename=currentVal
             print("File name:", currentVal)
