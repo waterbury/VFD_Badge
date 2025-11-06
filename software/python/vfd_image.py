@@ -76,23 +76,61 @@ def draw(image):
     # Makes sure image is in 1 bit color.
     img_1bit = image.convert('1', dither=Image.FLOYDSTEINBERG ).transpose(Image.FLIP_TOP_BOTTOM)
 
+    orig_horiz_res, orig_vert_res = img_1bit.size
+    print(f"Image resolution: {orig_horiz_res}x{orig_vert_res} pixels")
 
-    width, height = img_1bit.size
-    print(f"Image resolution: {width}x{height} pixels")
+    screen_vert_res=256
+    screen_horiz_res=48
 
-    # If image is not vertical, but is correct resolution, rotate.
-    if (width == 256) & (height == 48):
+        # Calculate aspect ratios
+    screen_aspect = screen_horiz_res / screen_vert_res
+    orig_image_aspect = orig_horiz_res / orig_vert_res
+
+    print("image_aspect: " + str(orig_image_aspect))
+
+    # If image is not vertical, rotate.
+    if orig_image_aspect > 1:
         img_1bit = img_1bit.rotate(270, expand=True)
-        width, height = img_1bit.size
-        print(f"New Image resolution: {width}x{height} pixels")
+        orig_horiz_res, orig_vert_res = img_1bit.size
+        print("Image not vertical, rotating.")
+        print(f"New Image resolution: {orig_horiz_res}x{orig_vert_res} pixels")
+        orig_image_aspect = orig_horiz_res / orig_vert_res
+        print("image_aspect: " + str(orig_image_aspect))
 
-    image_array = list(img_1bit.getdata()) 
+
+    crop_horiz_origin = 0
+    crop_vert_origin = 0
+
+    if orig_vert_res > screen_vert_res or orig_horiz_res > screen_horiz_res:
+        img_1bit = img_1bit.crop((crop_horiz_origin, crop_vert_origin, crop_horiz_origin + screen_horiz_res, crop_vert_origin + screen_vert_res))
+        # Image is larger, so crop
+        #if orig_horiz_res > screen_horiz_res:
+        #    # Original is wider, crop width
+        #    left = 0
+        #    top = 0
+        #    right = left + new_width
+        #    bottom = original_height
+        #else:
+        #    # Original is taller, crop height
+        #    new_height = int(original_width / target_aspect)
+        #    left = 0
+        #    top = (original_height - new_height) // 2
+        #    right = original_width
+        #    bottom = top + new_height
+        #img_1bit = img_1bit.crop((0, 0, screen_horiz_res, screen_vert_res))
+        #img = img.resize((target_width, target_height), Image.LANCZOS) # Resize after cropping
+    #elif original_width < target_width or original_height < target_height:
+    #    # Image is smaller, so pad
+    #    img = ImageOps.pad(img, (target_width, target_height), color=fill_color)
+
+
+    image_array = list(img_1bit.getdata())
 
     frame = [0x00] * 1536
     pixel = 0
 
     #Transposes image into format VFD will display
-    
+
     image_array_len = len(image_array)
     bitmapByteNum = 0
     bitmapPixNum = 0
@@ -150,7 +188,7 @@ def init_test():
     clear()
     time.sleep(0.02)
     spi_transfer([0xF0,0x00,0x00])
-    spi_transfer([0x80,0x00])    
+    spi_transfer([0x80,0x00])
     spi_transfer([0x78,0x08])
 
 
